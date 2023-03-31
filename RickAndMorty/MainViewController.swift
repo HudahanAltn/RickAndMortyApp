@@ -11,7 +11,16 @@ class MainViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        if let logo = UIImage(named: "RickandMortyNavBar"){
+        
+            let imageView = UIImageView(image:logo)
+            imageView.contentMode = .scaleAspectFit
+            self.navigationItem.titleView = imageView
+        }
+        
+        
+       
     }
 
 
