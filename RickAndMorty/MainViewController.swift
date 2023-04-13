@@ -18,7 +18,10 @@ class MainViewController: UIViewController{
     let rmClient = RMClient()//cliend başlatıldı
     
     var RMLocations:[RMLocationModel] = [RMLocationModel]()//url get isteğine bağlı olarak gelecek RM dünyalarının tutulacağı dizi.
-   
+    
+    var residentsURL:[String] = [String]()
+    var RMCharacters:[RMCharacterModel] = [RMCharacterModel]()
+    
     
     func fetchDataLoc(completionHandler: @escaping (Result<[RMLocationModel], Error>) -> Void) {
         //async fonksiyonun viewDidload içerisinde kullanılması için oluşturulan
@@ -32,7 +35,7 @@ class MainViewController: UIViewController{
             }
         }
     }
-    
+   
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -81,13 +84,13 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return temp.count
+        return RMCharacters.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "characterCell",for:indexPath)
-        cell.textLabel?.text = temp[indexPath.row]
+        cell.textLabel?.text = RMCharacters[indexPath.row].name
         return cell
     }
 }
@@ -124,6 +127,24 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
     
     }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        residentsURL = RMLocations[indexPath.row].residents// dünyaya göre tek bir karakter veren url listesi
+        
+    
+        tableViewCharacterTypes.reloadData()
+        
+        Task {// cv içinde async fonks çalıştırmak için kullanılacak yapı
+                do {
+                    let result = try await self.getCharacterByWorld()
+                    RMCharacters = result
+                    tableViewCharacterTypes.reloadData()
+                    print("Asenkron görev tamamlandı. Sonuç: \(result)")
+                } catch {
+                    print("Asenkron görev hata ile tamamlandı: \(error)")
+                }
+            }
+    }
+
 }
 
 extension MainViewController{
@@ -139,4 +160,37 @@ extension MainViewController{
         design.itemSize = CGSize(width: hücreGenislik, height: 50)
         collectionViewWorldTypes.collectionViewLayout = design
     }
+    
+    func getCharacterByWorld()async throws->[RMCharacterModel]{
+
+        var rmCharacter:[RMCharacterModel] = [RMCharacterModel]()// geçici liste
+        
+        for i in residentsURL.indices{// url sayısı kdr döngü
+
+            
+            let string = residentsURL[i]
+
+            //"Https://rickandmortyapi.com/api/character/2" buradaki 2 gibi sayıları alabiliyorıuz.
+            // Regex patterni(regular expression ile url in sonundaki id'leri alıyoruz)
+            let pattern = "/character/(\\d+)"
+
+            if let range = string.range(of: pattern, options: .regularExpression) {
+                // Eşleşen kısmın alt dizesini al
+                let match = String(string[range])
+                print("Eşleşme: \(match)")
+                
+                // Sayıyı al (Grup 1)
+                if let numberRange = match.range(of: "\\d+", options: .regularExpression) {
+                    let number = String(match[numberRange])
+                    let character = try await rmClient.character().getCharacterByID(id: Int(number)!)
+                    rmCharacter.append(character)
+                    print("rakam: \(number)")
+                }
+            }
+        
+        }
+        
+        return rmCharacter
+    }
 }
+
