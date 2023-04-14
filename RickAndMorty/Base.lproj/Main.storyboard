@@ -19,21 +19,54 @@
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="LZJ-js-ZeW">
                                 <rect key="frame" x="0.0" y="171" width="393" height="647"/>
-                                <color key="backgroundColor" red="0.96470588450000005" green="0.78431367870000002" blue="0.76862752440000004" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="characterCell" id="dLR-2V-bh8">
-                                        <rect key="frame" x="0.0" y="50" width="393" height="43.666667938232422"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="characterCell" rowHeight="123" id="dLR-2V-bh8" customClass="TableViewCellCharacters" customModule="RickAndMorty" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="50" width="393" height="123"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="dLR-2V-bh8" id="r6A-Aa-lEL">
-                                            <rect key="frame" x="0.0" y="0.0" width="393" height="43.666667938232422"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="393" height="123"/>
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="ricksanchez" translatesAutoresizingMaskIntoConstraints="NO" id="nF7-Eg-juq">
+                                                    <rect key="frame" x="0.0" y="1" width="120" height="120"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                </imageView>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Male" translatesAutoresizingMaskIntoConstraints="NO" id="1hB-O0-vYc">
+                                                    <rect key="frame" x="328" y="5" width="60" height="60"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="60" id="cBK-9g-a0c"/>
+                                                        <constraint firstAttribute="height" constant="60" id="tye-xf-Uaa"/>
+                                                    </constraints>
+                                                </imageView>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Rick Sanchez" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F7H-Im-0xY">
+                                                    <rect key="frame" x="225.66666666666663" y="74" width="162.33333333333337" height="40"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="40" id="ltu-QK-nhi"/>
+                                                    </constraints>
+                                                    <fontDescription key="fontDescription" name="Avenir-Heavy" family="Avenir" pointSize="27"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailing" secondItem="F7H-Im-0xY" secondAttribute="trailing" constant="5" id="4aE-6P-1aZ"/>
+                                                <constraint firstItem="1hB-O0-vYc" firstAttribute="top" secondItem="r6A-Aa-lEL" secondAttribute="top" constant="5" id="6fy-hP-zro"/>
+                                                <constraint firstItem="F7H-Im-0xY" firstAttribute="bottom" secondItem="r6A-Aa-lEL" secondAttribute="bottomMargin" constant="2" id="DXN-fI-JCZ"/>
+                                                <constraint firstAttribute="trailing" secondItem="1hB-O0-vYc" secondAttribute="trailing" constant="5" id="i98-b8-qon"/>
+                                            </constraints>
                                         </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="characterImage" destination="nF7-Eg-juq" id="ODy-Cq-Hq0"/>
+                                            <outlet property="characterLabel" destination="F7H-Im-0xY" id="b9o-dW-77d"/>
+                                            <outlet property="genderIconImage" destination="1hB-O0-vYc" id="1T6-Ja-oW1"/>
+                                        </connections>
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="4Ie-Oa-8HC">
                                 <rect key="frame" x="0.0" y="103" width="393" height="60"/>
-                                <color key="backgroundColor" red="0.59607843140000005" green="0.97647058819999999" blue="0.84705882349999995" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="wlP-O1-qxu"/>
                                 </constraints>
@@ -76,7 +109,7 @@
                             </collectionView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
-                        <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="4Ie-Oa-8HC" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="IpQ-fE-WbN"/>
                             <constraint firstItem="4Ie-Oa-8HC" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="Sqd-Du-oLX"/>
@@ -134,6 +167,8 @@
         </scene>
     </scenes>
     <resources>
+        <image name="Male" width="170.66667175292969" height="170.66667175292969"/>
+        <image name="ricksanchez" width="306" height="403"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

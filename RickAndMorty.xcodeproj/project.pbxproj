@@ -19,6 +19,8 @@
 		058754B029D65E85008BB25A /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058754AF29D65E85008BB25A /* DetailViewController.swift */; };
 		05DB01F329E78FBA009BDB38 /* RickMortySwiftApi in Frameworks */ = {isa = PBXBuildFile; productRef = 05DB01F229E78FBA009BDB38 /* RickMortySwiftApi */; };
 		05DB01F529E790D8009BDB38 /* CollectionViewCellLocations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DB01F429E790D8009BDB38 /* CollectionViewCellLocations.swift */; };
+		05F9AF0329E98AB400CE4408 /* UIColorExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F9AF0229E98AB400CE4408 /* UIColorExt.swift */; };
+		05F9AF0529E98B4500CE4408 /* TableViewCellCharacters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F9AF0429E98B4500CE4408 /* TableViewCellCharacters.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +56,8 @@
 		058754A229D65E52008BB25A /* RickAndMortyUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RickAndMortyUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		058754AF29D65E85008BB25A /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 		05DB01F429E790D8009BDB38 /* CollectionViewCellLocations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewCellLocations.swift; sourceTree = "<group>"; };
+		05F9AF0229E98AB400CE4408 /* UIColorExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExt.swift; sourceTree = "<group>"; };
+		05F9AF0429E98B4500CE4408 /* TableViewCellCharacters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCellCharacters.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,6 +118,8 @@
 				0587548A29D65E51008BB25A /* LaunchScreen.storyboard */,
 				0587548D29D65E51008BB25A /* Info.plist */,
 				05DB01F429E790D8009BDB38 /* CollectionViewCellLocations.swift */,
+				05F9AF0229E98AB400CE4408 /* UIColorExt.swift */,
+				05F9AF0429E98B4500CE4408 /* TableViewCellCharacters.swift */,
 			);
 			path = RickAndMorty;
 			sourceTree = "<group>";
@@ -273,10 +279,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				0587548429D65E51008BB25A /* MainViewController.swift in Sources */,
+				05F9AF0329E98AB400CE4408 /* UIColorExt.swift in Sources */,
 				0587548029D65E51008BB25A /* AppDelegate.swift in Sources */,
 				0587548229D65E51008BB25A /* SceneDelegate.swift in Sources */,
 				058754B029D65E85008BB25A /* DetailViewController.swift in Sources */,
 				05DB01F529E790D8009BDB38 /* CollectionViewCellLocations.swift in Sources */,
+				05F9AF0529E98B4500CE4408 /* TableViewCellCharacters.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -9,7 +9,10 @@ import UIKit
 import RickMortySwiftApi
 class MainViewController: UIViewController{
 
-   
+   //ekran size değerleri en başta alınıyor ve değişmeden kalıyor bunlar TV cell yapılandırılmasında kullanılacak
+    let screenWidthG = UIScreen.main.bounds.width
+    let screenHeightG = UIScreen.main.bounds.height
+    
     @IBOutlet weak var collectionViewWorldTypes: UICollectionView!
     @IBOutlet weak var tableViewCharacterTypes: UITableView!
     
@@ -19,8 +22,8 @@ class MainViewController: UIViewController{
     
     var RMLocations:[RMLocationModel] = [RMLocationModel]()//url get isteğine bağlı olarak gelecek RM dünyalarının tutulacağı dizi.
     
-    var residentsURL:[String] = [String]()
-    var RMCharacters:[RMCharacterModel] = [RMCharacterModel]()
+    var residentsURL:[String] = [String]()//CV'ye tıklayınca gelen residents bilg tutulacağı liste
+    var RMCharacters:[RMCharacterModel] = [RMCharacterModel]()//her bir residentUrl get işlemi yapılınca gelen karakterlerin tutulacağı liste
     
     
     func fetchDataLoc(completionHandler: @escaping (Result<[RMLocationModel], Error>) -> Void) {
@@ -67,6 +70,9 @@ class MainViewController: UIViewController{
         tableViewCharacterTypes.dataSource = self
         collectionViewWorldTypes.delegate = self
         collectionViewWorldTypes.dataSource = self
+        //TV ve CV arkaplan renkleri
+        collectionViewWorldTypes.backgroundColor = .black
+        tableViewCharacterTypes.backgroundColor = .black
     }
     
    
@@ -89,9 +95,68 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "characterCell",for:indexPath)
-        cell.textLabel?.text = RMCharacters[indexPath.row].name
+        let cell = tableView.dequeueReusableCell(withIdentifier: "characterCell",for:indexPath) as! TableViewCellCharacters
+
+        //cell tasarım
+        cell.characterLabel.lineBreakMode = .byWordWrapping
+        cell.characterLabel.numberOfLines = 2
+        cell.characterImage.frame.size = CGSize(width: screenHeightG/5, height: screenHeightG/5)
+        cell.characterLabel.textColor = UIColor(rgb:0xb2dae4)//rickblue
+        cell.characterLabel.text = RMCharacters[indexPath.row].name
+        cell.genderIconImage.image = UIImage(named: RMCharacters[indexPath.row].gender)
+        cell.genderIconImage.frame.size = CGSize(width: screenHeightG/15, height: screenHeightG/15)
+        
+       
+        //resim dosyası alma işlemleri
+        if let imageURL = URL(string: RMCharacters[indexPath.row].image) {
+            URLSession.shared.dataTask(with: imageURL) { (data, response, error) in
+                
+                if(error != nil || data == nil){
+                    
+                    print("resim verileri alınamadı!")
+                    return
+                }
+                
+                if let imageData = data {
+                    DispatchQueue.main.async {
+                        cell.characterImage.image = UIImage(data: imageData)
+                    }
+                }
+            }.resume()
+        }
+
+        //cell border tasarım
+        cell.layer.borderColor = UIColor(rgb: 0x39ff14).cgColor//portal green
+        cell.layer.borderWidth = 0.5
+        cell.layer.cornerRadius = 5
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+    }
+    
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        
+        //TV cell boyutunu cihazın yatay ve dikey konumuna göre ayarladık.
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        
+        
+        var rowHeight:CGFloat = screenHeight/5
+        let currentDevice = UIDevice.current
+
+        if currentDevice.orientation.isPortrait {
+            // Dikey modda
+            rowHeight = screenHeight/5
+        } else if currentDevice.orientation.isLandscape {
+            // Yatay modda
+            rowHeight = screenWidth/5
+        }
+        
+        
+        return rowHeight
     }
 }
 
@@ -111,28 +176,32 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "worldCell", for: indexPath)
         as! CollectionViewCellLocations
         
+        //Cell içi label tasarımı
+        cell.worldName.textColor = UIColor(rgb:0xf8fe76)//morty yellow
         cell.worldName.text = location.name//ismi cell'e yazdır.
-        
-        //Hücre içi label tasarımı
         let genislik = self.collectionViewWorldTypes.frame.size.width
         let maxSize = CGSize(width: genislik/2-5, height: 50)
         let fitSize = cell.worldName.sizeThatFits(maxSize)
         cell.worldName.frame.size = fitSize
         cell.worldName.textAlignment = .center
         
-        //Hücre etrafına border çizme
-        cell.layer.borderColor = UIColor.lightGray.cgColor
-        cell.layer.borderWidth = 0.5
+        //Cell border tasarım
+        cell.layer.borderColor = UIColor(rgb: 0x39ff14).cgColor//portal green
+        cell.backgroundColor = .black
+        cell.layer.borderWidth = 1.0
+        cell.layer.cornerRadius = 7
         return cell
+    
     
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         residentsURL = RMLocations[indexPath.row].residents// dünyaya göre tek bir karakter veren url listesi
         
-    
         tableViewCharacterTypes.reloadData()
-        
+        DispatchQueue.main.async {
+            
+        }
         Task {// cv içinde async fonks çalıştırmak için kullanılacak yapı
                 do {
                     let result = try await self.getCharacterByWorld()
@@ -149,7 +218,7 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
 
 extension MainViewController{
     
-    func structureCVCell(){// CVdeki hücrenin tasarımı
+    func structureCVCell(){//CVdeki hücrenin tasarımı
         let design:UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         design.scrollDirection = .horizontal
         let genislik = self.collectionViewWorldTypes.frame.size.width
