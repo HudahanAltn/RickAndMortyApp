@@ -76,6 +76,14 @@ class MainViewController: UIViewController{
     }
     
    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        if let character = sender as? RMCharacterModel{
+            
+            let goToDetailPage = segue.destination as! DetailViewController
+            goToDetailPage.character = character
+        }
+    }
  
 }
 
@@ -131,12 +139,7 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
         cell.layer.cornerRadius = 5
         return cell
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-    }
-    
-    
+
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         
         //TV cell boyutunu cihazın yatay ve dikey konumuna göre ayarladık.
@@ -157,6 +160,13 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
         
         
         return rowHeight
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let character = RMCharacters[indexPath.row]
+        
+        self.performSegue(withIdentifier: "MainToDetail", sender: character)
     }
 }
 
@@ -219,6 +229,7 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
 extension MainViewController{
     
     func structureCVCell(){//CVdeki hücrenin tasarımı
+        
         let design:UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         design.scrollDirection = .horizontal
         let genislik = self.collectionViewWorldTypes.frame.size.width
