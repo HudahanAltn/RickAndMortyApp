@@ -16,8 +16,6 @@ class MainViewController: UIViewController{
     @IBOutlet weak var collectionViewWorldTypes: UICollectionView!
     @IBOutlet weak var tableViewCharacterTypes: UITableView!
     
-    var temp = ["hüdahan","hüdahan2"]//deneme listesi
-    
     let rmClient = RMClient()//cliend başlatıldı
     
     var RMLocations:[RMLocationModel] = [RMLocationModel]()//url get isteğine bağlı olarak gelecek RM dünyalarının tutulacağı dizi.
@@ -25,12 +23,11 @@ class MainViewController: UIViewController{
     var residentsURL:[String] = [String]()//CV'ye tıklayınca gelen residents bilg tutulacağı liste
     var RMCharacters:[RMCharacterModel] = [RMCharacterModel]()//her bir residentUrl get işlemi yapılınca gelen karakterlerin tutulacağı liste
     
-    
     func fetchDataLoc(completionHandler: @escaping (Result<[RMLocationModel], Error>) -> Void) {
         //async fonksiyonun viewDidload içerisinde kullanılması için oluşturulan
         Task {
             do {
-                let locations = try await rmClient.location().getAllLocations()
+                let locations = try await rmClient.location().getAllLocations()//veriler alındı
                 completionHandler(.success(locations))
                 
             } catch {
@@ -39,6 +36,7 @@ class MainViewController: UIViewController{
         }
     }
    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -63,7 +61,6 @@ class MainViewController: UIViewController{
             
             }
         
-        
         structureCVCell()
         //protocol bağlantıları
         tableViewCharacterTypes.delegate = self
@@ -79,7 +76,7 @@ class MainViewController: UIViewController{
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         if let character = sender as? RMCharacterModel{
-            
+            //detailVC sayfasına tıklanılan hücredeki karakter nesnesini yolluyoruz.
             let goToDetailPage = segue.destination as! DetailViewController
             goToDetailPage.character = character
         }
@@ -93,11 +90,9 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
-        
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
         return RMCharacters.count
     }
     
@@ -146,7 +141,6 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
         let screenWidth = UIScreen.main.bounds.width
         let screenHeight = UIScreen.main.bounds.height
         
-        
         var rowHeight:CGFloat = screenHeight/5
         let currentDevice = UIDevice.current
 
@@ -158,12 +152,11 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
             rowHeight = screenWidth/5
         }
         
-        
         return rowHeight
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
+        //tıklanılan hücredeki karakter nesnesini alıp yollayacağız.
         let character = RMCharacters[indexPath.row]
         
         self.performSegue(withIdentifier: "MainToDetail", sender: character)
@@ -178,7 +171,6 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return RMLocations.count
     }
-    
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
@@ -201,34 +193,63 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
         cell.layer.borderWidth = 1.0
         cell.layer.cornerRadius = 7
         return cell
-    
-    
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
         residentsURL = RMLocations[indexPath.row].residents// dünyaya göre tek bir karakter veren url listesi
         
-        tableViewCharacterTypes.reloadData()
-        DispatchQueue.main.async {
-            
+        if let cell = collectionView.cellForItem(at: indexPath) {
+            cell.backgroundColor = .lightGray // Seçili hücre rengi atandı
         }
+        
+        //tableview içeriği yüklenmeye başlamadan önce loading için activityIndcatorView oluşturuldu.Kullanıcı deneyimi için uzun süren loading işlemlerinde kullanıcıya bilgi verilir.
+        let activityIndicatorView = UIActivityIndicatorView(style: .large)
+        activityIndicatorView.hidesWhenStopped = true
+        activityIndicatorView.color = UIColor(rgb: 0x39ff14)
+        tableViewCharacterTypes.tableHeaderView = activityIndicatorView
+        activityIndicatorView.startAnimating()// animasyon başlar
+        tableViewCharacterTypes.reloadData()
+        
+        let noResultsLabel = UILabel()//tableview üzerinde hiçbir içerik olmaması durumunda kullanıcıya bilgi verilmesi için basit label yaratıldı.
+        noResultsLabel.text = ""//içeriği en başta boş olacak
+        tableViewCharacterTypes.backgroundView = noResultsLabel// label tableview'e eklendi
+        
+        //tıklanılan dünyaya göre o dünyadaki karakterlerin gelmesi
         Task {// cv içinde async fonks çalıştırmak için kullanılacak yapı
-                do {
-                    let result = try await self.getCharacterByWorld()
-                    RMCharacters = result
-                    tableViewCharacterTypes.reloadData()
-                    print("Asenkron görev tamamlandı. Sonuç: \(result)")
-                } catch {
-                    print("Asenkron görev hata ile tamamlandı: \(error)")
+            do {
+                let result = try await self.getCharacterByWorld()
+                RMCharacters = result
+                activityIndicatorView.stopAnimating()// url get işlemi bitip Tableview'a veri gelince animasyon durur.
+                tableViewCharacterTypes.reloadData()
+                print("Asenkron görev tamamlandı. Sonuç: \(result)")
+                
+                if result.isEmpty{// hiç veri gelmez ise "sonuç bulunamadı" bildirimi gösterilir.
+                    noResultsLabel.text = "Sonuç bulunamadı"
+                    noResultsLabel.textAlignment = .center
+                    noResultsLabel.textColor = UIColor(rgb: 0x39ff14)
+                    noResultsLabel.numberOfLines = 0 // Birden fazla satır kullanabilmesi için numberOfLines özelliğini 0 olarak ayarlayın
+                    
+                    tableViewCharacterTypes.backgroundView = noResultsLabel
                 }
+                
+            } catch {
+                print("Asenkron görev hata ile tamamlandı: \(error)")
             }
+        }
     }
-
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        if let cell = collectionView.cellForItem(at: indexPath) {
+            cell.backgroundColor = .clear // Seçimi kaldırınca hücre rengi temizlenir.
+        }
+    }
+    
 }
 
 extension MainViewController{
     
-    func structureCVCell(){//CVdeki hücrenin tasarımı
+    func structureCVCell(){//CVdeki hücrenin  ekran üzerindeki tasarımı.
         
         let design:UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         design.scrollDirection = .horizontal
@@ -239,9 +260,10 @@ extension MainViewController{
         let hücreGenislik = genislik/2
         design.itemSize = CGSize(width: hücreGenislik, height: 50)
         collectionViewWorldTypes.collectionViewLayout = design
+
     }
     
-    func getCharacterByWorld()async throws->[RMCharacterModel]{
+    func getCharacterByWorld()async throws->[RMCharacterModel]{//karakterleri dünyaya göre alan fonks.
 
         var rmCharacter:[RMCharacterModel] = [RMCharacterModel]()// geçici liste
         
@@ -259,17 +281,16 @@ extension MainViewController{
                 let match = String(string[range])
                 print("Eşleşme: \(match)")
                 
-                // Sayıyı al (Grup 1)
+                // Sayıyı al sonra karakteri al
                 if let numberRange = match.range(of: "\\d+", options: .regularExpression) {
+                    
                     let number = String(match[numberRange])
                     let character = try await rmClient.character().getCharacterByID(id: Int(number)!)
                     rmCharacter.append(character)
                     print("rakam: \(number)")
                 }
             }
-        
         }
-        
         return rmCharacter
     }
 }

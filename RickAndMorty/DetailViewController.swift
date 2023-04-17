@@ -10,7 +10,6 @@ import RickMortySwiftApi
 
 class DetailViewController: UIViewController {
 
-    
     var character:RMCharacterModel?//MainVC den gelen karakter verisini tutacak
 
     @IBOutlet weak var characterImageView: UIImageView!
@@ -36,36 +35,27 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var characterCreatedTitle: UILabel!
     @IBOutlet weak var characterCreatedLabel: UILabel!
     
+    var safeAreaTop:CGFloat = 0.0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        //view üzerinden constraintler silinince safeArea bilgileride siliniyor.bu yüzden en başta otomatik şekilde status bar ve navbar yüksekliğini bulup  characterImageView nesnesine constraint atamasını bu bilgiler yardımıyla yapacağız
+        safeAreaTop = (self.navigationController?.navigationBar.frame.height)! + UIApplication.shared.statusBarFrame.height
+        
+        
         setTitleColors()
         getCharacterDetails()
-    }
-    
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        // aynı sayfada iken  cihaz dönüş yapınca değişen sayfa tasarımı
-                   if size.width > size.height {//yatay
-
-                       setHorizontalConstraint()
-                   } else {//dikey
-                       
-                      setVerticalConstraint()
-                   }
-
-    }
-    
-
-    override func viewWillAppear(_ animated: Bool) {
         //sayfa açılışında cihaz duruşuna göre sayfa içeriği ayarlanır.
        let currentOrientation = UIDevice.current.orientation
 
         switch currentOrientation {
         case .portrait:
             print("Dikey duruş")
+            removeAllConstraints()
             setVerticalConstraint()
         case .landscapeLeft, .landscapeRight:
             print("yatay duruş")
+            removeAllConstraints()
             setHorizontalConstraint()
         default:
             print("Bilinmeyen duruş")
@@ -74,19 +64,28 @@ class DetailViewController: UIViewController {
             let screenHeight = screenBounds.height
 
             if screenWidth > screenHeight{
+                removeAllConstraints()
                 setHorizontalConstraint()
             }else{
+                removeAllConstraints()
                 setVerticalConstraint()
             }
-            
         }
-
-        
-        
     }
     
-
-
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        // aynı sayfada iken  cihaz dönüş yapınca değişen sayfa tasarımı
+        
+        if size.width > size.height{//genişlik yükseklikten büyükse cihaz yatay pozisyondadır.
+            removeAllConstraints()
+            setHorizontalConstraint()
+        }else{
+            removeAllConstraints()
+            setVerticalConstraint()
+            
+        }
+    }
 }
 
 extension DetailViewController{
@@ -130,9 +129,9 @@ extension DetailViewController{
         
         //characterImageView Contraints
         characterImageView.translatesAutoresizingMaskIntoConstraints = false
-        let _ = characterImageView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: +20.0).isActive = true
-
+        let _ = characterImageView.leftAnchor.constraint(equalTo: self.view.leftAnchor,constant: +20.0).isActive=true
         let _ = characterImageView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor,constant: -50).isActive = true
+
         let _ = characterImageView.heightAnchor.constraint(equalToConstant: 275.0).isActive = true
         let _ = characterImageView.widthAnchor.constraint(equalToConstant: 275.0).isActive = true
 
@@ -247,9 +246,8 @@ extension DetailViewController{
     func setVerticalConstraint(){ //cihaz dikey konumda iken constraintler
         
         characterImageView.translatesAutoresizingMaskIntoConstraints = false
-        let _ = characterImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: +20.0).isActive = true
-
-        let _ = characterImageView.leftAnchor.constraint(equalTo: self.view.leftAnchor,constant: +50).isActive = true
+        let _ = characterImageView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: +50.0).isActive = true
+        let _ = characterImageView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: +20.0 + safeAreaTop).isActive = true
         let _ = characterImageView.heightAnchor.constraint(equalToConstant: 275.0).isActive = true
         let _ = characterImageView.widthAnchor.constraint(equalToConstant: 275.0).isActive = true
 
@@ -359,6 +357,12 @@ extension DetailViewController{
         let _ = characterCreatedLabel.heightAnchor.constraint(equalToConstant: 22.0).isActive = true
         let _ = characterCreatedLabel.widthAnchor.constraint(equalToConstant: 200).isActive = true
         
+    }
+    func removeAllConstraints() {// constraintleri önce temizleyerek karışıklığı önledik.
+        // view içindeki tüm constraintleri ilk önce deactive yapıp sonra kaldırırız sonra tekrar active ederiz.
+        view.translatesAutoresizingMaskIntoConstraints = true
+        view.removeConstraints(view.constraints)
+
     }
  
     func setTitleColors(){// sayfadaki labelların renklerini setlemek için kullandık
