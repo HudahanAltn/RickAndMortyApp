@@ -39,38 +39,14 @@ class DetailViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         //view üzerinden constraintler silinince safeArea bilgileride siliniyor.bu yüzden en başta otomatik şekilde status bar ve navbar yüksekliğini bulup  characterImageView nesnesine constraint atamasını bu bilgiler yardımıyla yapacağız
         safeAreaTop = (self.navigationController?.navigationBar.frame.height)! + UIApplication.shared.statusBarFrame.height
         
+        setTitleColors()//sayfadaki title'lar ve imageview ayarlanır
+        getCharacterDetails()//karakter detayları getirilir
+        setInitialConstraints() //sayfa açılışında cihaz duruşuna göre constraints ayarlanır.
         
-        setTitleColors()
-        getCharacterDetails()
-        //sayfa açılışında cihaz duruşuna göre sayfa içeriği ayarlanır.
-       let currentOrientation = UIDevice.current.orientation
-
-        switch currentOrientation {
-        case .portrait:
-            print("Dikey duruş")
-            removeAllConstraints()
-            setVerticalConstraint()
-        case .landscapeLeft, .landscapeRight:
-            print("yatay duruş")
-            removeAllConstraints()
-            setHorizontalConstraint()
-        default:
-            print("Bilinmeyen duruş")
-            let screenBounds = UIScreen.main.bounds
-            let screenWidth = screenBounds.width
-            let screenHeight = screenBounds.height
-
-            if screenWidth > screenHeight{
-                removeAllConstraints()
-                setHorizontalConstraint()
-            }else{
-                removeAllConstraints()
-                setVerticalConstraint()
-            }
-        }
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -88,43 +64,34 @@ class DetailViewController: UIViewController {
     }
 }
 
+//MARK: - DetailVC Constraints Fonksiyonları
 extension DetailViewController{
+    
+    func setInitialConstraints(){
+        
+        let currentOrientation = UIDevice.current.orientation
 
-    func getEpisodes(episode:[String])->String{//gelen url'lerin sonlarındaki rakamı alıp direkt bölüm olarak yazdırdık.regular exprs kullandık.
-        
-        var episodes:String = String()
-        
-        for i in episode.indices{// url sayısı kdr döngü
+         switch currentOrientation {
+         case .portrait:
+             removeAllConstraints()
+             setVerticalConstraint()
+         case .landscapeLeft, .landscapeRight:
+             removeAllConstraints()
+             setHorizontalConstraint()
+         default:
+             let screenBounds = UIScreen.main.bounds
+             let screenWidth = screenBounds.width
+             let screenHeight = screenBounds.height
 
-            let string = episode[i]
-            
-            let pattern = "/episode/(\\d+)"
-
-            if let range = string.range(of: pattern, options: .regularExpression) {
-                // Eşleşen kısmın alt dizesini al
-                let match = String(string[range])
-                
-                print("Eşleşme: \(match)")
-                
-                // Sayıyı al (Grup 1)
-                if let numberRange = match.range(of: "\\d+", options: .regularExpression) {
-                    
-                    let number = String(match[numberRange])
-                    episodes += "\(number). "
-                    print("rakam: \(number)")
-                }
-            }
-        
-        }
-        
-        return episodes
+             if screenWidth > screenHeight{
+                 removeAllConstraints()
+                 setHorizontalConstraint()
+             }else{
+                 removeAllConstraints()
+                 setVerticalConstraint()
+             }
+         }
     }
-    
-    
-    
-    
-    
-    
     func setHorizontalConstraint(){//cihaz yatay konumda iken constraintler
         
         //characterImageView Contraints
@@ -365,27 +332,67 @@ extension DetailViewController{
 
     }
  
-    func setTitleColors(){// sayfadaki labelların renklerini setlemek için kullandık
-        let mortyYellow = UIColor(rgb:0xf8fe76)
-        let portalGreen = UIColor(rgb:0x39ff14)
-        let rickBlue = UIColor(rgb:0xb2dae4)
-        self.view.backgroundColor = .black
-        characterStatusTitle.textColor = portalGreen
-        characterStatusLabel.textColor = rickBlue
-        characterSpecyTitle.textColor = portalGreen
-        characterSpecyLabel.textColor = rickBlue
-        characterGenderTitle.textColor = portalGreen
-        characterGenderLabel.textColor = rickBlue
-        characterOriginTitle.textColor = portalGreen
-        characterOriginLabel.textColor = rickBlue
-        characterLocationTitle.textColor = portalGreen
-        characterLocationLabel.textColor = rickBlue
-        characterEpisodesTitle.textColor = portalGreen
-        characterEpisodesLabel.textColor = rickBlue
-        characterCreatedTitle.textColor = portalGreen
-        characterCreatedLabel.textColor = rickBlue
-        self.navigationController?.navigationBar.tintColor = portalGreen // back button color
-        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: mortyYellow]// navigation title color
+}
+
+//MARK: - DetailVC  tasarım
+extension DetailViewController{
+    
+       func setTitleColors(){// sayfadaki labelların renklerini setlemek için kullandık
+           let mortyYellow = UIColor(rgb:0xf8fe76)
+           let portalGreen = UIColor(rgb:0x39ff14)
+           let rickBlue = UIColor(rgb:0xb2dae4)
+           self.view.backgroundColor = .black
+           characterStatusTitle.textColor = portalGreen
+           characterStatusLabel.textColor = rickBlue
+           characterSpecyTitle.textColor = portalGreen
+           characterSpecyLabel.textColor = rickBlue
+           characterGenderTitle.textColor = portalGreen
+           characterGenderLabel.textColor = rickBlue
+           characterOriginTitle.textColor = portalGreen
+           characterOriginLabel.textColor = rickBlue
+           characterLocationTitle.textColor = portalGreen
+           characterLocationLabel.textColor = rickBlue
+           characterEpisodesTitle.textColor = portalGreen
+           characterEpisodesLabel.textColor = rickBlue
+           characterCreatedTitle.textColor = portalGreen
+           characterCreatedLabel.textColor = rickBlue
+           self.navigationController?.navigationBar.tintColor = portalGreen // back button color
+           self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: mortyYellow]// navigation title color
+       }
+       
+}
+
+//MARK: - Rick and Morty Karakter Detay Alma ve Bölüm Alma Fonksiyonları
+extension DetailViewController{
+    
+    func getEpisodes(episode:[String])->String{//gelen url'lerin sonlarındaki rakamı alıp direkt bölüm olarak yazdırdık.regular exprs kullandık.
+        
+        var episodes:String = String()
+        
+        for i in episode.indices{// url sayısı kdr döngü
+
+            let string = episode[i]
+            
+            let pattern = "/episode/(\\d+)"
+
+            if let range = string.range(of: pattern, options: .regularExpression) {
+                // Eşleşen kısmın alt dizesini al
+                let match = String(string[range])
+                
+                print("Eşleşme: \(match)")
+                
+                // Sayıyı al (Grup 1)
+                if let numberRange = match.range(of: "\\d+", options: .regularExpression) {
+                    
+                    let number = String(match[numberRange])
+                    episodes += "\(number). "
+                    print("rakam: \(number)")
+                }
+            }
+        
+        }
+        
+        return episodes
     }
     
     func getCharacterDetails(){//karakter detaylarını almak için kullandık
@@ -404,7 +411,7 @@ extension DetailViewController{
                     
                     if(error != nil || data == nil){
                         
-                        print("resim verileri alınamadı!")
+                        print("Resim verileri alınamadı!")
                         
                         return
                     }

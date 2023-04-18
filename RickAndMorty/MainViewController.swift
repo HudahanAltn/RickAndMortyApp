@@ -16,51 +16,32 @@ class MainViewController: UIViewController{
     @IBOutlet weak var collectionViewWorldTypes: UICollectionView!
     @IBOutlet weak var tableViewCharacterTypes: UITableView!
     
-    let rmClient = RMClient()//cliend başlatıldı
+    let rmClient = RMClient()//client başlatıldı
     
     var RMLocations:[RMLocationModel] = [RMLocationModel]()//url get isteğine bağlı olarak gelecek RM dünyalarının tutulacağı dizi.
     
     var residentsURL:[String] = [String]()//CV'ye tıklayınca gelen residents bilg tutulacağı liste
     var RMCharacters:[RMCharacterModel] = [RMCharacterModel]()//her bir residentUrl get işlemi yapılınca gelen karakterlerin tutulacağı liste
     
-    func fetchDataLoc(completionHandler: @escaping (Result<[RMLocationModel], Error>) -> Void) {
-        //async fonksiyonun viewDidload içerisinde kullanılması için oluşturulan
-        Task {
-            do {
-                let locations = try await rmClient.location().getAllLocations()//veriler alındı
-                completionHandler(.success(locations))
-                
-            } catch {
-                completionHandler(.failure(error))
-            }
-        }
-    }
-   
+    var pagenumber = 1// ilk 20 lokasyon fetch isteği için gereken int değer. ayrıca diğer sayfaların görüntülenmesi içinde oluşturuldu.
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let logo = UIImage(named: "RickandMortyNavBar"){
+        loadRMLogo()//NavBar a RM logosu gösterir
         
-            let imageView = UIImageView(image:logo)
-            imageView.contentMode = .scaleAspectFit
-            self.navigationItem.titleView = imageView
-        }
-        
-        //dünyalar viewdidload ile birlikte gelecek
-        fetchDataLoc { result in
+        //page = 1 dünyaları viewdidload ile birlikte gelecek
+        getRMLocByPageNum(pagenum: 1) { result in
                 switch result {
                 case .success(let locations):
                     // Veri işleme işlemleri burada yapılır
-                    self.RMLocations = locations.shuffled()//rastgele sırada alıyoruz.
+                    self.RMLocations = locations.reversed().reversed()//url'den gelen sıra ile alıyoruz.
                     self.collectionViewWorldTypes.reloadData()//CV güncellenecek
-                    print("lokasyonlar alındı: \(locations)")
                 case .failure(let error):
                     print(error)
                 }
-            
             }
-        
+
         structureCVCell()
         //protocol bağlantıları
         tableViewCharacterTypes.delegate = self
@@ -72,20 +53,26 @@ class MainViewController: UIViewController{
         tableViewCharacterTypes.backgroundColor = .black
     }
     
-   
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        
         if let character = sender as? RMCharacterModel{
             //detailVC sayfasına tıklanılan hücredeki karakter nesnesini yolluyoruz.
             let goToDetailPage = segue.destination as! DetailViewController
             goToDetailPage.character = character
         }
     }
- 
+    
+    func loadRMLogo(){//Nav bara RM logosu gösterir.
+        if let logo = UIImage(named: "RickandMortyNavBar"){
+        
+            let imageView = UIImageView(image:logo)
+            imageView.contentMode = .scaleAspectFit
+            self.navigationItem.titleView = imageView
+        }
+    }
 }
 
 
-
+//MARK: - TableView Protocol Fonksiyonları
 extension MainViewController:UITableViewDelegate,UITableViewDataSource{
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -109,17 +96,20 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
         cell.genderIconImage.image = UIImage(named: RMCharacters[indexPath.row].gender)
         cell.genderIconImage.frame.size = CGSize(width: screenHeightG/15, height: screenHeightG/15)
         
-       
+        //cell border tasarım
+        cell.layer.borderColor = UIColor(rgb: 0x39ff14).cgColor//portal green
+        cell.layer.borderWidth = 0.5
+        cell.layer.cornerRadius = 5
+        
         //resim dosyası alma işlemleri
         if let imageURL = URL(string: RMCharacters[indexPath.row].image) {
             URLSession.shared.dataTask(with: imageURL) { (data, response, error) in
                 
                 if(error != nil || data == nil){
-                    
-                    print("resim verileri alınamadı!")
+                    print("Resim verileri alınamadı!)")
                     return
                 }
-                
+    
                 if let imageData = data {
                     DispatchQueue.main.async {
                         cell.characterImage.image = UIImage(data: imageData)
@@ -127,11 +117,6 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
                 }
             }.resume()
         }
-
-        //cell border tasarım
-        cell.layer.borderColor = UIColor(rgb: 0x39ff14).cgColor//portal green
-        cell.layer.borderWidth = 0.5
-        cell.layer.cornerRadius = 5
         return cell
     }
 
@@ -163,6 +148,7 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
     }
 }
 
+//MARK: - CollectionView Protocol Fonksiyonları
 extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout{
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -225,14 +211,13 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
                 print("Asenkron görev tamamlandı. Sonuç: \(result)")
                 
                 if result.isEmpty{// hiç veri gelmez ise "sonuç bulunamadı" bildirimi gösterilir.
-                    noResultsLabel.text = "Sonuç bulunamadı"
+                    noResultsLabel.text = "Gösterilecek karakter bulunamadı."
                     noResultsLabel.textAlignment = .center
                     noResultsLabel.textColor = UIColor(rgb: 0x39ff14)
                     noResultsLabel.numberOfLines = 0 // Birden fazla satır kullanabilmesi için numberOfLines özelliğini 0 olarak ayarlayın
                     
                     tableViewCharacterTypes.backgroundView = noResultsLabel
                 }
-                
             } catch {
                 print("Asenkron görev hata ile tamamlandı: \(error)")
             }
@@ -245,8 +230,59 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
         }
     }
     
+    
 }
 
+//MARK: - UICollectionView Scroll Fonksiyonu
+extension MainViewController{
+    
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {//görünen en son cell'i tespit etme mantığıyla CV'nin sonuna gelince yeni location yüklemesi yapan fonks.
+        
+        let visibleCells = collectionViewWorldTypes.indexPathsForVisibleItems // görünen cell'ler alındı
+            if let currentIndexPath = visibleCells.first {//ilkini al
+                
+                if (currentIndexPath.item == RMLocations.count - 1){// rmloc cell sayısı 20 sıra 19 görününce sonda oldğumuz anlaşılıyor
+                    
+                    //index path sıfırlama ve scrollu sol başa kaydırma
+                    let indexPath = IndexPath(item: 0, section: 0)
+                    collectionViewWorldTypes.scrollToItem(at: indexPath, at: .left, animated: true)
+                    RMLocations.removeAll()//liste  yeni lokasyonlar geleceği için temizlenmeli
+                    
+                    pagenumber += 1// yeni lok gelmesi içn url get page num increment edilir.
+                    
+                    if(pagenumber < 7){// toplam 6 sayfa gösterilecek
+
+                        //1-6 sayfaları tekrar al ve RMloc ' a yükle
+                        getRMLocByPageNum(pagenum:pagenumber) { result in
+                                switch result {
+                                case .success(let locations):
+                                    self.RMLocations = locations.reversed().reversed()
+                                    self.collectionViewWorldTypes.reloadData()
+                                case .failure(let error):
+                                    print(error)
+                                }
+                            }
+                    }else{
+                        // son sayfa yı görüntüleyince artık CV'nin sonuna gidilince ilk sayfa gtekrar görüntülenmeli
+                        pagenumber = 1//bu yüzden page number 1 e setlenir
+                        
+                        getRMLocByPageNum(pagenum:pagenumber) { result in
+                                switch result {
+                                case .success(let locations):
+                                    self.RMLocations = locations.reversed().reversed()
+                                    self.collectionViewWorldTypes.reloadData()
+                                case .failure(let error):
+                                    print(error)
+                                }
+                            }
+                    }
+                }
+            }
+    }
+
+}
+
+//MARK: - MainVC tasarım fonksiyonları
 extension MainViewController{
     
     func structureCVCell(){//CVdeki hücrenin  ekran üzerindeki tasarımı.
@@ -262,6 +298,10 @@ extension MainViewController{
         collectionViewWorldTypes.collectionViewLayout = design
 
     }
+}
+
+//MARK: - Rick and Morty API fonksiyonları
+extension MainViewController{
     
     func getCharacterByWorld()async throws->[RMCharacterModel]{//karakterleri dünyaya göre alan fonks.
 
@@ -292,6 +332,19 @@ extension MainViewController{
             }
         }
         return rmCharacter
+    }
+    
+    func getRMLocByPageNum(pagenum:Int,completionHandler: @escaping (Result<[RMLocationModel], Error>) -> Void) {
+        //async fonksiyonun viewDidload içerisinde kullanılması için oluşturulan
+        Task {
+            do {
+                let locations = try await rmClient.location().getLocationsByPageNumber(pageNumber: pagenum)//veriler alındı
+                completionHandler(.success(locations))
+                
+            } catch {
+                completionHandler(.failure(error))
+            }
+        }
     }
 }
 
