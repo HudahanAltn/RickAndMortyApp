@@ -101,6 +101,16 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource{
         cell.layer.borderWidth = 0.5
         cell.layer.cornerRadius = 5
         
+        //basit animasyon yapısı
+        cell.layer.transform = CATransform3DMakeScale(0.1,0.1,1)
+        UIView.animate(withDuration: 0.5, animations: {
+            cell.layer.transform = CATransform3DMakeScale(1.0,1.0,1)
+            },completion: { finished in
+                UIView.animate(withDuration: 0.3, animations: {
+                    cell.layer.transform = CATransform3DMakeScale(1,1,1)
+                })
+        })
+                
         //resim dosyası alma işlemleri
         if let imageURL = URL(string: RMCharacters[indexPath.row].image) {
             URLSession.shared.dataTask(with: imageURL) { (data, response, error) in
@@ -184,6 +194,7 @@ extension MainViewController:UICollectionViewDelegate,UICollectionViewDataSource
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
         residentsURL = RMLocations[indexPath.row].residents// dünyaya göre tek bir karakter veren url listesi
+        RMCharacters.removeAll()//her seferinde yeni dünyaya tıklayınca listeyi sıfırlaki yeni içerik gelirken ekran temiz gözüksün
         
         if let cell = collectionView.cellForItem(at: indexPath) {
             cell.backgroundColor = .lightGray // Seçili hücre rengi atandı
